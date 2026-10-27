@@ -151,6 +151,9 @@ CLIProxyAPI Guides: [https://help.router-for.me/](https://help.router-for.me/)
 
 see [MANAGEMENT_API.md](https://help.router-for.me/management/api)
 
+For the authenticated Antigravity and Codex quota snapshot endpoint, see the
+[v8 quota aggregate documentation](docs/management-api-v8.md#quota-aggregate).
+
 ## Usage Statistics
 
 Since v6.10.0, CLIProxyAPI and [CPAMC](https://github.com/router-for-me/Cli-Proxy-API-Management-Center) no longer ship built-in usage statistics. If you need usage statistics, use:

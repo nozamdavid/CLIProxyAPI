@@ -90,6 +90,7 @@ retain the corresponding business operation's fields.
 | `/config/upstream/<provider>` | GET, PUT, PATCH, DELETE | Manage shared provider settings. |
 | `/server/latest-version` | GET | Get latest release information. |
 | `/requests/api-call` | POST | Make an authenticated upstream call. |
+| `/quota/aggregate` | GET | Read cached Antigravity and Codex quota data; `?refresh=true` refreshes it. |
 | `/routing/cooldown/reset` | POST | Clear credential cooldown. |
 | `/routing/model-definitions/<channel>` | GET | Get model definitions. |
 | `/observability/logs` | GET, DELETE | Read or clear application logs. |
@@ -116,6 +117,34 @@ retain the corresponding business operation's fields.
 | `/plugins/store` | GET | List the plugin store. |
 | `/plugins/store/<id>/install` | POST | Install or update a plugin. |
 | `/plugins/<id>/quota` | GET, POST, DELETE | Read, fetch, or reset plugin quota. |
+
+## Quota aggregate
+
+`GET /v8/management/quota/aggregate` uses the normal management key. Its
+response has a UTC RFC3339 `generated` timestamp and `antigravity` and `codex`
+arrays. Normal requests use a 90-second per-handler cache. Add
+`?refresh=true` to bypass it; concurrent requests share the same in-flight
+refresh. Auth inventory or proxy configuration changes invalidate the cache.
+Antigravity account work is limited to four concurrent credentials and the
+overall refresh uses the 60-second management APICall timeout budget.
+
+Antigravity records preserve provider group labels and bucket fields, including
+dynamic labels such as Gemini 4 Argon. Disabled accounts remain listed but are
+skipped during fetch. A plan lookup failure is reported as `plan_error` and does
+not prevent a quota fetch. Per-account `error` values identify refresh, missing
+access token, or quota fetch failures; raw upstream error bodies and credentials
+are never returned. Empty group and bucket arrays are valid. A missing upstream
+`remainingFraction` is returned as `null`.
+
+Codex records use runtime quota observations. `quota.signals` and each
+`model_quotas` entry contain only allowlisted `X-Codex-*` quota headers. Plan
+claims are projected without returning the ID token. These observations may be
+empty until a Codex request supplies quota headers or a WebSocket event.
+
+The backend returns account data and does not calculate fleet totals. A panel can
+sum bucket fractions and count contributors by `displayName` and `bucketId`,
+falling back to `window`; keep different windows separate. After a deployment
+is verified, the external `quota.py` sidecar can be retired.
 
 ## OAuth
 
